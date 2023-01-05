@@ -20,7 +20,9 @@ func GetUserList(c *gin.Context) {
 	list := make([]*models.UserBasic, 10)
 	list = models.GetUserList()
 	c.JSON(http.StatusOK, gin.H{
-		"message": list,
+		"code":    0,
+		"message": "得到用户列表",
+		"data":    list,
 	})
 }
 
@@ -41,13 +43,15 @@ func CreateUser(c *gin.Context) {
 
 	data := models.FindUserByName(user.Name)
 	if data.Name != "" {
-		c.JSON(-1, gin.H{
+		c.JSON(200, gin.H{
+			"code":    -1,
 			"message": "用户名已注册",
 		})
 		return
 	}
 	if password != repassword {
-		c.JSON(-1, gin.H{
+		c.JSON(200, gin.H{
+			"code":    -1,
 			"message": "两次密码不一致",
 		})
 		return
@@ -57,6 +61,7 @@ func CreateUser(c *gin.Context) {
 	models.CreateUser(user)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "新增用户成功",
+		"data":    user,
 	})
 }
 
@@ -72,21 +77,25 @@ func FindUserByNameAndPwd(c *gin.Context) {
 	password := c.Query("password")
 	byName := models.FindUserByName(name)
 	if byName.Name == "" {
-		c.JSON(-1, gin.H{
+		c.JSON(200, gin.H{
+			"code":    -1,
 			"message": "该用户不存在",
 		})
 		return
 	}
 	flag := utils.ValidPassword(password, byName.Salt, byName.PassWord)
 	if !flag {
-		c.JSON(-1, gin.H{
+		c.JSON(200, gin.H{
+			"code":    -1,
 			"message": "密码错误",
 		})
 		return
 	}
 	data := models.FindUserByNameAndPwd(name, byName.PassWord)
 	c.JSON(http.StatusOK, gin.H{
-		"message": data,
+		"code":    0, //0是成功 -1失败
+		"message": "登陆成功",
+		"data":    data,
 	})
 }
 
@@ -102,7 +111,9 @@ func DeleteUser(c *gin.Context) {
 	user.ID = uint(id)
 	models.DeleteUser(user)
 	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
 		"message": "删除用户成功",
+		"data":    user,
 	})
 }
 
@@ -128,12 +139,15 @@ func UpdateUser(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusOK, gin.H{
+			"code":    -1,
 			"message": "请使用正确的邮箱或者电话号码",
 		})
 	} else {
 		models.UpdateUser(user)
 		c.JSON(http.StatusOK, gin.H{
+			"code":    0,
 			"message": "修改用户成功",
+			"data":    user,
 		})
 	}
 }
