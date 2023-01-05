@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"ginchat/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -17,7 +16,7 @@ func main() {
 	db.AutoMigrate(&models.UserBasic{})
 
 	// Create
-	user := &models.UserBasic{}
+	/*user := &models.UserBasic{}
 	user.Name = "杨博松"
 	db.Create(user)
 
@@ -31,5 +30,5 @@ func main() {
 	//db.Model(&product).Updates(map[string]interface{}{"Price": 200, "Code": "F42"})
 
 	// Delete - 删除 product
-	//db.Delete(&product, 1)
+	//db.Delete(&product, 1)*/
 }
