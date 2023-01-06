@@ -54,10 +54,34 @@ func InitRedis() {
 		PoolSize:     viper.GetInt("redis.poolSize"),
 		MinIdleConns: viper.GetInt("redis.minIdleConn"),
 	})
-	pong, err := Red.Ping(context.Background()).Result()
+}
+
+const (
+	PublishKey = "websocket"
+)
+
+// publish发布消息到redis
+func Publish(ctx context.Context, channel string, msg string) error {
+	var err error
+	fmt.Println("发送中...", msg)
+	err = Red.Publish(ctx, channel, msg).Err()
 	if err != nil {
-		fmt.Println("init redis error", err)
-	} else {
-		fmt.Println("init redis 成功", pong)
+		fmt.Println(err)
 	}
+	return err
+}
+
+// subscribe订阅redis消息
+func Subscribe(ctx context.Context, channel string) (string, error) {
+	sub := Red.Subscribe(ctx, channel)
+
+	msg, err := sub.ReceiveMessage(ctx)
+	fmt.Println("subscribe....", ctx)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	fmt.Println(msg.Payload)
+
+	return msg.Payload, err
 }

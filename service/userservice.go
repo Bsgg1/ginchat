@@ -6,9 +6,11 @@ import (
 	"ginchat/utils"
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // GetUserList
@@ -149,5 +151,45 @@ func UpdateUser(c *gin.Context) {
 			"message": "修改用户成功",
 			"data":    user,
 		})
+	}
+}
+
+// 防止跨越站点伪造请求
+var upGrade = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func SendMsg(c *gin.Context) {
+	ws, err := upGrade.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func(ws *websocket.Conn) {
+		err = ws.Close()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}(ws)
+	MsgHandler(ws, c)
+}
+
+func MsgHandler(ws *websocket.Conn, c *gin.Context) {
+	for {
+		msg, err := utils.Subscribe(c, utils.PublishKey)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		time := time.Now().Format("2023-01-06 10:03:01")
+		m := fmt.Sprintf("[ws][%s]:%s", time, msg)
+		err = ws.WriteMessage(1, []byte(m))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 }
